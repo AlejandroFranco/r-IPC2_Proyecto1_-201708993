@@ -1,9 +1,8 @@
 import copy
 import re
-import os
 from pip._vendor.distlib.compat import raw_input
 import xml.etree.ElementTree as ET
-import math
+import os
 
 class Vertice:
     def __init__(self, i, h=0):
@@ -229,12 +228,66 @@ class Main:
             elif entrada == "4":
                self.mostrarDatos()
             elif entrada == "5":
-                a = 1
+                self.generarGrafica()
+                self.menu()
             elif entrada == "6":
                 raw_input("Presione una tecla" + "\n")
         else:
             self.menu()
 
+    def generarGrafica(self):
+        contenido = ""
+        iterador = self.lista_terrenos.cabeza
+        while iterador:
+            print(iterador.datos.nombre)
+            iterador = iterador.siguiente
+        terreno_graficar = input("Ingrese el nombre del terreno")
+        terreno_seleccionado = None
+        iterador = self.lista_terrenos.cabeza
+        while iterador:
+            if iterador.datos.nombre == terreno_graficar:
+                terreno_seleccionado = iterador
+                break
+            iterador = iterador.siguiente
+
+        fila = terreno_seleccionado.datos.matriz.fila
+        contenido += "digraph "+terreno_graficar + "{" + "\n"
+        contenido += "node  [shape=plaintext]"+"\n"
+        contenido += "splines=line"+"\n"
+        contenido += "struct1 [label=<"+"\n"
+        contenido += "<TABLE BORDER=" + "\""+"0"+"\"" + "CELLBORDER=" + "\"" + "1" + "\"" + " CELLSPACING=" + "\"" + "20" + "\"" + " CELLPADDING=" + "\"" + "10"+"\"" + ">"+"\n"
+        contenido += "<tr>"+"\n"
+        contador_puerto = 0
+        contador_struct = 1
+        while fila:
+            if fila is not None:
+                if contador_struct > 1:
+                    contenido += "</TR>"+"\n"
+                    contenido += "</TABLE >>];"+"\n"
+                    contenido +="\n"
+                    contenido += "struct" + str(contador_struct) + "[label=<" + "\n"
+                    contenido += "<TABLE BORDER=" + "\"" + "0" + "\"" + "CELLBORDER=" + "\"" + "1" + "\"" + " CELLSPACING=" + "\"" + "20" + "\"" + " CELLPADDING=" + "\"" + "10" + "\"" + ">" + "\n"
+                    contenido += "<tr>" + "\n"
+                casilla = fila.casilla
+                while casilla:
+                    if casilla is not None:
+                        contenido += "<TD PORT "+"f" + str(contador_puerto)+">" + str(casilla.valor)+"</TD>"+"\n"
+                        contador_puerto += 1
+                    else:
+                        break
+                    casilla = casilla.siguiente
+            else:
+                break
+            fila = fila.siguiente
+            contador_struct += 1
+        contenido += "</TR>" + "\n"
+        contenido += "</TABLE >>];" + "\n"
+        #contenido += "\n"+"}"
+        file = open("grafico.dot", "w+")
+        file.write(contenido)
+        file.close()
+        #os.system('cmd /k "dot -Tpng grafico.dot -o grafico.png"')
+        #os.system('cmd /k "grafico.png"')
 
     def cargarArchivo(self):
         nombre_archivo = input("Ingrese la ruta del archivo")
@@ -409,7 +462,7 @@ class Main:
                 casilla = fila.casilla
                 while casilla:
                     if casilla is not None:
-                        if casilla.x == camino_ordenado[contador2].split(",")[0]:
+                        if contador2<=len(camino_ordenado)-1  and casilla.x == camino_ordenado[contador2].split(",")[0]:
                             if casilla.x + "," + casilla.y == camino_ordenado[contador2]:
                                 costo += int(casilla.valor)
                                 contador2 += 1
