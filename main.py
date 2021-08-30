@@ -252,13 +252,14 @@ class Main:
 
         fila = terreno_seleccionado.datos.matriz.fila
         contenido += "digraph "+terreno_graficar + "{" + "\n"
-        contenido += "node  [shape=plaintext]"+"\n"
+        contenido += "node [shape=plaintext]"+"\n"
         contenido += "splines=line"+"\n"
         contenido += "struct1 [label=<"+"\n"
-        contenido += "<TABLE BORDER=" + "\""+"0"+"\"" + "CELLBORDER=" + "\"" + "1" + "\"" + " CELLSPACING=" + "\"" + "20" + "\"" + " CELLPADDING=" + "\"" + "10"+"\"" + ">"+"\n"
-        contenido += "<tr>"+"\n"
+        contenido += "<TABLE BORDER=" + "\""+"0"+"\"" + " CELLBORDER=" + "\"" + "1" + "\"" + " CELLSPACING=" + "\"" + "20" + "\"" + " CELLPADDING=" + "\"" + "10"+"\"" + ">"+"\n"
+        contenido += "<TR>"+"\n"
         contador_puerto = 0
         contador_struct = 1
+        contador_casillas = 0
         while fila:
             if fila is not None:
                 if contador_struct > 1:
@@ -266,28 +267,52 @@ class Main:
                     contenido += "</TABLE >>];"+"\n"
                     contenido +="\n"
                     contenido += "struct" + str(contador_struct) + "[label=<" + "\n"
-                    contenido += "<TABLE BORDER=" + "\"" + "0" + "\"" + "CELLBORDER=" + "\"" + "1" + "\"" + " CELLSPACING=" + "\"" + "20" + "\"" + " CELLPADDING=" + "\"" + "10" + "\"" + ">" + "\n"
-                    contenido += "<tr>" + "\n"
+                    contenido += "<TABLE BORDER=" + "\"" + "0" + "\"" + " CELLBORDER=" + "\"" + "1" + "\"" + " CELLSPACING=" + "\"" + "20" + "\"" + " CELLPADDING=" + "\"" + "10" + "\"" + ">" + "\n"
+                    contenido += "<TR>" + "\n"
                 casilla = fila.casilla
                 while casilla:
                     if casilla is not None:
-                        contenido += "<TD PORT "+"f" + str(contador_puerto)+">" + str(casilla.valor)+"</TD>"+"\n"
+                        contenido += "<TD PORT" + "=" + "\"" + "f"+ str(contador_puerto)+"\"" +">" + str(casilla.valor)+"</TD>"+"\n"
                         contador_puerto += 1
+                        if contador_struct == 1:
+                            contador_casillas += 1
                     else:
                         break
                     casilla = casilla.siguiente
-            else:
-                break
             fila = fila.siguiente
             contador_struct += 1
+        contador_struct -= 1
         contenido += "</TR>" + "\n"
         contenido += "</TABLE >>];" + "\n"
-        #contenido += "\n"+"}"
+        contador1 = 0
+        contador2 = contador_casillas
+        # De arriba hacia abajo
+        for i in range(1, contador_struct):
+            for j in range(contador1, contador2):
+                contenido += "struct"+str(i)+":f"+str(j)+" -> struct"+str(i+1)+":f"+str(j+contador_casillas) + ";" + "\n"
+            contador1 = contador2
+            contador2 = contador1 + contador_casillas
+
+        contenido += "\n"
+
+        contenido += "\n"
+        # de izquierda a derecha
+        indice1 = 0
+        indice2 = contador_casillas-1
+        # De izquierda a derecha
+        for i in range(1, contador_struct+1):
+            for j in range(indice1, indice2):
+                contenido += "struct" + str(i) + ":f" + str(j) + " -> struct" + str(i) + ":f" + str(j + 1) + ";" + "\n"
+            indice1 = indice2 + 1
+            indice2 = indice1 + contador_casillas -1
+
+
+        contenido += "\n" + "}"
         file = open("grafico.dot", "w+")
         file.write(contenido)
         file.close()
-        #os.system('cmd /k "dot -Tpng grafico.dot -o grafico.png"')
-        #os.system('cmd /k "grafico.png"')
+        os.system('cmd /k "dot -Tpng grafico.dot -o grafico.png"')
+        os.system('cmd /k "grafico.png"')
 
     def cargarArchivo(self):
         nombre_archivo = input("Ingrese la ruta del archivo")
@@ -432,7 +457,7 @@ class Main:
             fila = fila.siguiente
             print("\n")
         print("El costo es: " + str(costo))
-        a = 1
+
 
 
     def quickSort(self, camino):
@@ -462,7 +487,7 @@ class Main:
                 casilla = fila.casilla
                 while casilla:
                     if casilla is not None:
-                        if contador2<=len(camino_ordenado)-1  and casilla.x == camino_ordenado[contador2].split(",")[0]:
+                        if contador2 <= len(camino_ordenado)-1 and casilla.x == camino_ordenado[contador2].split(",")[0]:
                             if casilla.x + "," + casilla.y == camino_ordenado[contador2]:
                                 costo += int(casilla.valor)
                                 contador2 += 1
